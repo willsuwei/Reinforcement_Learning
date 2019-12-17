@@ -5,7 +5,11 @@ virtualenv --system-site-packages -p python3 ./venv
 
 ### Activate virttual enviroonment
 ```
-source ./venv/bin/activate  # sh, bash, ksh, or zsh
+source ./venv/bin/activate
+
+pip install --upgrade tensorflow
+python -c "import tensorflow as tf;print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
+python -c 'import tensorflow as tf; print(tf.__version__)'
 ```
 
 ## AlphaZero-Gomoku

@@ -49,8 +49,9 @@ class Human(object):
 def run():
     n = 5
     width, height = 8, 8
-    # model_file = '/models/best_policy_8_8_5.model'
-    model_file = '/models/best_policy.model.meta'
+    # model_file = './models/best_policy_8_8_5.model'
+    # model_file = './models/best_policy.model.data-00000-of-00001'
+    model_file = './models/best_policy.model'
     try:
         board = Board(width=width, height=height, n_in_row=n)
         game = Game(board)
@@ -62,13 +63,18 @@ def run():
         # mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=400)
 
         # load the provided model (trained in Theano/Lasagne) into a MCTS player written in pure numpy
-        try:
-            policy_param = pickle.load(open(model_file, 'rb'))
-        except:
-            policy_param = pickle.load(open(model_file, 'rb'),
-                                       encoding='bytes')  # To support python3
+        
+        # Default
+        # try:
+        #     policy_param = pickle.load(open(model_file, 'rb'))
+        # except:
+        #     policy_param = pickle.load(open(model_file, 'rb'),
+        #                                encoding='bytes')  # To support python3
         # best_policy = PolicyValueNetNumpy(width, height, policy_param)
-        best_policy = PolicyValueNet(width, height, policy_param)
+        
+        # Tensorflow
+        best_policy = PolicyValueNet(width, height, model_file)
+        
         mcts_player = MCTSPlayer(best_policy.policy_value_fn,
                                  c_puct=5,
                                  n_playout=400)  # set larger n_playout for better performance
