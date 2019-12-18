@@ -5,6 +5,9 @@ Created on Fri Feb  9 12:29:58 2018
 @author: zou
 """
 import tensorflow as tf
+# import tensorflow.compat.v1 as tf
+# tf.disable_v2_behavior()
+
 import os
 
 

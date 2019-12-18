@@ -151,15 +151,15 @@ class TrainPipeline():
              
                 if len(self.data_buffer) > self.batch_size:
                     print("#### batch i:{}, episode_len:{} ####\n".format(i+1, self.episode_len))
-                    for i in range(5):
-                        verbose = i % 5 == 0
+                    for j in range(5):
+                        verbose = j % 5 == 0
                         self.policy_update(verbose)                    
                 # check the performance of the current model，and save the model params
                 if (i+1) % self.check_freq == 0:
                     print("current self-play batch: {}".format(i+1))
                     self.policy_value_net.saver.save(self.policy_value_net.sess, self.policy_value_net.model_file)
                     win_ratio = self.policy_evaluate()
-                    print('*****win ration: {:.2f}%\n'.format(win_ratio*100))
+                    print('***** Win ratio: {:.2f}%\n'.format(win_ratio*100))
                     
                     if win_ratio > self.best_win_ratio: 
                         print("New best policy!!!!!!!!")
@@ -169,10 +169,9 @@ class TrainPipeline():
                             self.pure_mcts_playout_num += 100
                             self.best_win_ratio = 0.0
 
-                    self.policy_value_net.saver.save(self.policy_value_net.sess, self.policy_value_net.model_file, i)
-                    print("Saved model")
+                    # self.policy_value_net.saver.save(self.policy_value_net.sess, self.policy_value_net.model_file, i)
+                    # print("Saved model")
                 
-
         except KeyboardInterrupt:
             self.policy_value_net.saver.save(self.policy_value_net.sess, self.policy_value_net.model_file)
             print('\n\rquit')
