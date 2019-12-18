@@ -34,8 +34,8 @@ class TrainPipeline():
         self.play_batch_size = 1 
         self.epochs = 5 # num of train_steps for each update
         self.kl_targ = 0.02
-        self.check_freq = 1000
-        self.game_batch_num = 50000000
+        self.check_freq = 10
+        self.game_batch_num = 1000000
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as the opponent to evaluate the trained policy
         self.pure_mcts_playout_num = 3000
@@ -168,11 +168,15 @@ class TrainPipeline():
                         if self.best_win_ratio == 1.0 and self.pure_mcts_playout_num < 5000:
                             self.pure_mcts_playout_num += 100
                             self.best_win_ratio = 0.0
+
+                    self.policy_value_net.saver.save(self.policy_value_net.sess, self.policy_value_net.model_file, i)
+                    print("Saved model")
+                
+
         except KeyboardInterrupt:
             self.policy_value_net.saver.save(self.policy_value_net.sess, self.policy_value_net.model_file)
             print('\n\rquit')
     
 if __name__ == '__main__':
-    
     training_pipeline = TrainPipeline()
     training_pipeline.run()    
