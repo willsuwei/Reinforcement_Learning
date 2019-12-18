@@ -1,13 +1,13 @@
 ### Create virtual environment
 ```
-virtualenv --system-site-packages -p python3 ./venv
+virtualenv --system-site-packages -p python3 /Users/will/Projects/venv
 ```
 
 ### Activate virttual enviroonment
 ```
-source ./venv/bin/activate
+source /Users/will/Projects/venv/bin/activate
 
-pip install --upgrade tensorflow
+pip install --upgrade tensorflow==1.15
 python -c "import tensorflow as tf;print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
 python -c 'import tensorflow as tf; print(tf.__version__)'
 ```

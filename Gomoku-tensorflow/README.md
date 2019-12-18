@@ -1,5 +1,19 @@
 # AlphaZero_Gomoku-tensorflow
 
+### Create virtual environment
+```
+virtualenv --system-site-packages -p python3 /Users/will/Projects/venv
+```
+
+### Activate virttual enviroonment
+```
+source /Users/will/Projects/venv/bin/activate
+
+pip install --upgrade tensorflow==1.15
+python -c "import tensorflow as tf;print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
+python -c 'import tensorflow as tf; print(tf.__version__)'
+```
+
 Forked from [junxiaosong/AlphaZero_Gomoku](https://github.com/junxiaosong/AlphaZero_Gomoku) with some changes:  
 
 * rewrited the network code with tensorflow
