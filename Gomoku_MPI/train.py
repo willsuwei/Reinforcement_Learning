@@ -21,8 +21,8 @@ class TrainPipeline():
     def __init__(self, init_model=None,transfer_model=None):
         self.resnet_block = 19  # num of block structures in resnet
         # params of the board and the game
-        self.board_width = 11
-        self.board_height = 11
+        self.board_width = 6
+        self.board_height = 6
         self.n_in_row = 5
         self.board = Board(width=self.board_width,
                            height=self.board_height,
@@ -36,7 +36,7 @@ class TrainPipeline():
         self.batch_size = 512  # mini-batch size for training
         self.data_buffer = deque(maxlen=self.buffer_size)
         self.play_batch_size = 1 # play n games for each network training
-        self.check_freq = 2
+        self.check_freq = 10
         self.game_batch_num = 50000000 # total game to train
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
