@@ -310,37 +310,38 @@ class Game(object):
             if current_player == 1 and not end:
                 move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=1)
             else:
-                inp = UI.get_input()
-                if inp[0] == 'move' and not end:
-                    if type(inp[1]) != int:
-                        move = UI.loc_2_move(inp[1])
-                    else:
-                        move = inp[1]
-                elif inp[0] == 'RestartGame':
-                    end = False
-                    current_player = SP
-                    self.board.init_board()
-                    UI.restart_game()
-                    AI.reset_player()
-                    continue
-                elif inp[0] == 'ResetScore':
-                    UI.reset_score()
-                    continue
-                elif inp[0] == 'quit':
-                    exit()
-                    continue
-                elif inp[0] == 'SwitchPlayer':
-                    end = False
-                    self.board.init_board()
-                    UI.restart_game(False)
-                    UI.reset_score()
-                    AI.reset_player()
-                    SP = (SP+1) % 2
-                    current_player = SP
-                    continue
-                else:
-                    # print('ignored inp:', inp)
-                    continue
+                move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=1)
+                # inp = UI.get_input()
+                # if inp[0] == 'move' and not end:
+                #     if type(inp[1]) != int:
+                #         move = UI.loc_2_move(inp[1])
+                #     else:
+                #         move = inp[1]
+                # elif inp[0] == 'RestartGame':
+                #     end = False
+                #     current_player = SP
+                #     self.board.init_board()
+                #     UI.restart_game()
+                #     AI.reset_player()
+                #     continue
+                # elif inp[0] == 'ResetScore':
+                #     UI.reset_score()
+                #     continue
+                # elif inp[0] == 'quit':
+                #     exit()
+                #     continue
+                # elif inp[0] == 'SwitchPlayer':
+                #     end = False
+                #     self.board.init_board()
+                #     UI.restart_game(False)
+                #     UI.reset_score()
+                #     AI.reset_player()
+                #     SP = (SP+1) % 2
+                #     current_player = SP
+                #     continue
+                # else:
+                #     # print('ignored inp:', inp)
+                #     continue
             # print('player %r move : %r'%(current_player,[move//self.board.width,move%self.board.width]))
             if not end:
                 # print(move, type(move), current_player)

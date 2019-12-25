@@ -100,7 +100,7 @@ class TrainPipeline():
         collect self-play data for training
         '''
         for i in range(n_games):
-            winner, play_data = self.game.start_self_play(self.mcts_player,is_shown=False)
+            winner, play_data = self.game.start_self_play(self.mcts_player,is_shown=True)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
             # augment the data
