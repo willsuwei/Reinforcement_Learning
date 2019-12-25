@@ -48,17 +48,17 @@ def run(start_player=0,is_shown=1):
     # you can set
     # human vs AI or AI vs AI
     n = 5
-    # width, height = 15, 15
-    # model_file = 'model_15_15_5/best_policy.model'
-    width, height = 6, 6
-    model_file = 'model/best_policy.model'
+    width, height = 15, 15
+    model_file = 'model_15_15_5/best_policy.model'
+    # width, height = 6, 6
+    # model_file = 'model/best_policy.model'
     p = os.getcwd()
     model_file = path.join(p,model_file)
 
     board = Board(width=width, height=height, n_in_row=n)
     game = Game(board)
 
-    mcts_player = MCTS_pure(5,400)
+    mcts_player = MCTS_pure(5,4000)
 
     best_policy = PolicyValueNet(board_width=width,board_height=height,block=19,init_model=model_file,cuda=True)
 
@@ -89,7 +89,7 @@ def run(start_player=0,is_shown=1):
     # return win
 
     # play in GUI
-    game.start_play_with_UI(alpha_zero_player) # Play with alpha zero
+    # game.start_play_with_UI(alpha_zero_player) # Play with alpha zero
     game.start_play_with_UI(mcts_player) # Play with pure MTCS
 
 
