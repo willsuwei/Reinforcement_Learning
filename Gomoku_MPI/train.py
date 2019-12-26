@@ -21,8 +21,8 @@ class TrainPipeline():
     def __init__(self, init_model=None,transfer_model=None):
         self.resnet_block = 19  # num of block structures in resnet
         # params of the board and the game
-        self.board_width = 6
-        self.board_height = 6
+        self.board_width = 9
+        self.board_height = 9
         self.n_in_row = 5
         self.board = Board(width=self.board_width,
                            height=self.board_height,
