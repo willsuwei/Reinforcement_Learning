@@ -58,7 +58,7 @@ def run(start_player=0,is_shown=1):
     board = Board(width=width, height=height, n_in_row=n)
     game = Game(board)
 
-    mcts_player = MCTS_pure(5,400)
+    mcts_player = MCTS_pure(5,4000)
 
     best_policy = PolicyValueNet(board_width=width,board_height=height,block=19,init_model=model_file,cuda=True)
 
@@ -89,7 +89,7 @@ def run(start_player=0,is_shown=1):
     # return win
 
     # play in GUI
-    game.start_play_with_UI(alpha_zero_player) # Play with alpha zero
+    # game.start_play_with_UI(alpha_zero_player) # Play with alpha zero
     game.start_play_with_UI(mcts_player) # Play with pure MTCS
 
 
