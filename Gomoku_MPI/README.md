@@ -10,6 +10,11 @@ pip install pygame==1.9.6
 pip install --upgrade numpy
 
 
+1 games: 5 steps 11s        2.2
+4 games: 5 steps 19.28s     0.964
+8 games: 5 steps 26.41s 24.88 24.55     0.625
+12 games: 5 steps 51.11s 54.87   0.36
+16 games: 5 steps 39.60s 39.96 77.59  39.1  36.85  0.495
 
 
 

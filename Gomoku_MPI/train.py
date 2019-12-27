@@ -16,6 +16,7 @@ from game_board import Board,Game
 from mcts_pure import MCTSPlayer as MCTS_Pure
 from mcts_alphaZero import MCTSPlayer
 from policy_value_net_tensorlayer import PolicyValueNet
+from threading import Thread
 
 class TrainPipeline():
     def __init__(self, init_model=None,transfer_model=None):
@@ -41,16 +42,17 @@ class TrainPipeline():
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
+        cuda = False
         self.pure_mcts_playout_num = 200
         if (init_model is not None) and os.path.exists(init_model+'.index'):
             # start training from an initial policy-value net
-            self.policy_value_net = PolicyValueNet(self.board_width,self.board_height,block=self.resnet_block,init_model=init_model,cuda=True)
+            self.policy_value_net = PolicyValueNet(self.board_width,self.board_height,block=self.resnet_block,init_model=init_model,cuda=cuda)
         elif (transfer_model is not None) and os.path.exists(transfer_model+'.index'):
             # start training from a pre-trained policy-value net
-            self.policy_value_net = PolicyValueNet(self.board_width,self.board_height,block=self.resnet_block,transfer_model=transfer_model,cuda=True)
+            self.policy_value_net = PolicyValueNet(self.board_width,self.board_height,block=self.resnet_block,transfer_model=transfer_model,cuda=cuda)
         else:
             # start training from a new policy-value net
-            self.policy_value_net = PolicyValueNet(self.board_width,self.board_height,block=self.resnet_block,cuda=True)
+            self.policy_value_net = PolicyValueNet(self.board_width,self.board_height,block=self.resnet_block,cuda=cuda)
 
         self.mcts_player = MCTSPlayer(policy_value_function=self.policy_value_net.policy_value_fn_random,
                                        action_fc=self.policy_value_net.action_fc_test,
@@ -99,8 +101,28 @@ class TrainPipeline():
         '''
         collect self-play data for training
         '''
+
+
+        self.mcts_player1 = MCTSPlayer(policy_value_function=self.policy_value_net.policy_value_fn_random,
+                                       action_fc=self.policy_value_net.action_fc_test,
+                                       evaluation_fc=self.policy_value_net.evaluation_fc2_test,
+                                       c_puct=self.c_puct,
+                                       n_playout=self.n_playout,
+                                       is_selfplay=True)
+
         for i in range(n_games):
-            winner, play_data = self.game.start_self_play(self.mcts_player,is_shown=True)
+            # winner, play_data = self.game.start_self_play(self.mcts_player,is_shown=True)
+            
+            # thread = Thread(target=self.game.start_self_play, args=(self.mcts_player, True))
+            # thread.start()
+            # thread1 = Thread(target=self.game.start_self_play, args=(self.mcts_player1, True))
+            # thread1.start()
+
+            # time.sleep(1000)
+
+            winner, play_data = self.game.start_UI_play(self.mcts_player, self.mcts_player, is_shown=True)
+
+
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
             # augment the data

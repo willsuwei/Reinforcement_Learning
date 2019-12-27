@@ -310,38 +310,38 @@ class Game(object):
             if current_player == 1 and not end:
                 move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=1)
             else:
-                move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=1)
-                # inp = UI.get_input()
-                # if inp[0] == 'move' and not end:
-                #     if type(inp[1]) != int:
-                #         move = UI.loc_2_move(inp[1])
-                #     else:
-                #         move = inp[1]
-                # elif inp[0] == 'RestartGame':
-                #     end = False
-                #     current_player = SP
-                #     self.board.init_board()
-                #     UI.restart_game()
-                #     AI.reset_player()
-                #     continue
-                # elif inp[0] == 'ResetScore':
-                #     UI.reset_score()
-                #     continue
-                # elif inp[0] == 'quit':
-                #     exit()
-                #     continue
-                # elif inp[0] == 'SwitchPlayer':
-                #     end = False
-                #     self.board.init_board()
-                #     UI.restart_game(False)
-                #     UI.reset_score()
-                #     AI.reset_player()
-                #     SP = (SP+1) % 2
-                #     current_player = SP
-                #     continue
-                # else:
-                #     # print('ignored inp:', inp)
-                #     continue
+                # move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=1)
+                inp = UI.get_input()
+                if inp[0] == 'move' and not end:
+                    if type(inp[1]) != int:
+                        move = UI.loc_2_move(inp[1])
+                    else:
+                        move = inp[1]
+                elif inp[0] == 'RestartGame':
+                    end = False
+                    current_player = SP
+                    self.board.init_board()
+                    UI.restart_game()
+                    AI.reset_player()
+                    continue
+                elif inp[0] == 'ResetScore':
+                    UI.reset_score()
+                    continue
+                elif inp[0] == 'quit':
+                    exit()
+                    continue
+                elif inp[0] == 'SwitchPlayer':
+                    end = False
+                    self.board.init_board()
+                    UI.restart_game(False)
+                    UI.reset_score()
+                    AI.reset_player()
+                    SP = (SP+1) % 2
+                    current_player = SP
+                    continue
+                else:
+                    # print('ignored inp:', inp)
+                    continue
             # print('player %r move : %r'%(current_player,[move//self.board.width,move%self.board.width]))
             if not end:
                 # print(move, type(move), current_player)
@@ -398,3 +398,50 @@ class Game(object):
                 return winner, zip(states, mcts_probs, winners_z)
 
 
+    def start_UI_play(self, player1, player2, is_shown=True, rank=0):
+        # AI.reset_player()
+        self.board.init_board()
+
+        UI = GUI(self.board.width)
+        end = False
+        states, mcts_probs, current_players = [], [], []
+        while True:
+            if self.board.current_player == 1:
+                # UI.show_messages('Player1\'s turn  1')
+                move, move_probs = player1.get_action(self.board, is_selfplay=False, print_probs_value=False)
+            else:
+                # UI.show_messages('Player2\'s turn  2')
+                move, move_probs = player2.get_action(self.board, is_selfplay=False, print_probs_value=False)
+                
+            UI.show_messages("MPI Rank: " + str(rank) + "  Count: " + str(len(states)) + "  Player: " + str(self.board.current_player))
+
+            UI.render_step(move, self.board.current_player)
+
+            # store the data
+            states.append(self.board.current_state())
+            mcts_probs.append(move_probs)
+            current_players.append(self.board.current_player)
+
+            self.board.do_move(move)
+            
+            end, winner = self.board.game_end()
+            if end:
+                # winner from the perspective of the current player of each state
+                winners_z = np.zeros(len(current_players))
+                if winner != -1:
+                    winners_z[np.array(current_players) == winner] = 1.0
+                    winners_z[np.array(current_players) != winner] = -1.0
+
+                # reset MCTS root node
+                player1.reset_player()
+                player2.reset_player()
+
+                if is_shown:
+                    if winner != -1:
+                        print("Game end. Winner is player:", winner)
+                    else:
+                        print("Game end. Tie")
+
+                break
+        
+        return winner, zip(states, mcts_probs, winners_z)

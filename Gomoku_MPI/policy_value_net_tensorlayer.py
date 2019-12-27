@@ -95,9 +95,9 @@ class PolicyValueNet():
             print('model loaded!')
         elif transfer_model is not None:
             self.saver_restore.restore(self.session,transfer_model)
-            print('transfer model loaded !')
+            print('transfer model loaded!')
         else:
-            print('can not find saved model, learn from scratch !')
+            print('can not find saved model, learn from scratch!')
         # self.print_params()
 
         # opponent net for evaluating
@@ -126,7 +126,7 @@ class PolicyValueNet():
         load model from numpy
         '''
         print('loading model from numpy form ...')
-        mat = np.load(path)
+        mat = np.load(path, allow_pickle=True)
         for ind, each in enumerate(params):
             self.session.run(params[ind].assign(mat[ind]))
         print('load model from numpy!')

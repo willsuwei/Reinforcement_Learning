@@ -271,11 +271,3 @@ class MCTSPlayer(object):
 
     def __str__(self):
         return "MCTS {}".format(self.player)
-
-
-
-
-
-
-
-
