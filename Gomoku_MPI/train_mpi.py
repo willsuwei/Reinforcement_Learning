@@ -413,10 +413,10 @@ class TrainPipeline():
                             #     self.best_win_ratio = 0.0
 
                     after = time.time()
-                    # do not train too frequent in the beginning
-                    # if after-before<60*10:
-                    #     time.sleep(60*10-after+before)
-                    time.sleep(10)
+                    # do not train too frequent in the beginning. 10 mins interval
+                    if after-before < 60*10:
+                        time.sleep(60*10-after+before)
+                    # time.sleep(10)
 
                 else:
                     #　self-play to collect data
