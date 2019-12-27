@@ -11,4 +11,5 @@ pip install tensorlayer==1.11.1
 pip install tensorflow==1.15
 pip install pygame==2.0.0.dev6
 pip install mpi4py==3.0.3
+pip install filelock
 # pip install --upgrade numpy

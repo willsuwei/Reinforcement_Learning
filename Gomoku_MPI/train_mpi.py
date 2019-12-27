@@ -67,7 +67,12 @@ class TrainPipeline():
             f.close()
         except:
             self.best_win_ratio = -1
-
+            
+        try:
+            os.remove("model/move_count.txt")
+        except:
+            pass
+            
         # GPU setting
         # be careful to set your GPU using depends on GPUs' and CPUs' memory
         # if rank in {0,1,2}:
@@ -328,6 +333,9 @@ class TrainPipeline():
                     # it's stupid and must have a better way to do it
                     dir_kifu_new = os.listdir('kifu_new')
                     for file in dir_kifu_new:
+                        if file == ".DS_Store":
+                            continue
+                        
                         try:
                             # try to move file from kifu_new to kifu_train, if is under written now, just pass
                             self.mymovefile('kifu_new/'+file,
@@ -339,6 +347,9 @@ class TrainPipeline():
 
                     dir_kifu_train = os.listdir('kifu_train')
                     for file in dir_kifu_train:
+                        if file == ".DS_Store":
+                            continue
+                        
                         try:
                             # load data
                             # try to move file from kifu_train to kifu_old, if is under written now, just pass

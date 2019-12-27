@@ -8,6 +8,9 @@ Created on Fri Dec  7 15:14:24 2018
 import numpy as np
 from collections import deque
 from GUI_v1_4 import GUI
+import time
+import os
+from filelock import FileLock
 
 class Board(object):
     '''
@@ -405,6 +408,9 @@ class Game(object):
         UI = GUI(self.board.width)
         end = False
         states, mcts_probs, current_players = [], [], []
+        
+        start_time = time.time()
+        
         while True:
             if self.board.current_player == 1:
                 # UI.show_messages('Player1\'s turn  1')
@@ -421,6 +427,52 @@ class Game(object):
             states.append(self.board.current_state())
             mcts_probs.append(move_probs)
             current_players.append(self.board.current_player)
+            
+            
+            fileName = "model/move_count.txt"
+            while True:
+                lock = None
+                if os.path.exists(fileName):
+                    lock = FileLock(fileName)
+                try:
+                        if os.path.exists(fileName):
+                            f = open(fileName, "r")
+                            count = int(f.readline().replace("\n", ""))
+                            start_time = float(f.readline().replace("\n", ""))
+                            f.close()
+                        else:
+                            count = 0
+                            # start time has been initialized
+                        
+                        count += 1
+                        current_time = time.time()
+                        time_elapsed = current_time - start_time
+                        speed = time_elapsed / count
+                        
+                        if (count % 100 == 0):
+                            count = 0
+                            start_time = time.time()
+                            current_time = start_time
+                            time_elapsed = 0
+                            speed = 0
+                        
+                        f = open(fileName, "w")
+                        f.write(str(count) + "\n") # count
+                        f.write(str(start_time) + '\n') # start time
+                        f.write(str(current_time) + '\n') # current time
+                        f.write(str(time_elapsed) + '\n') # current time
+                        f.write(str(speed) + '\n') # speed
+                        f.close()
+                        
+                        break
+                except ValueError as e:
+                    print(e)
+                    print("@" * 100, "write count conflict!!! ValueError")
+                except:
+                    print("!" * 100, "write count conflict!!! Other error")
+                finally:
+                    if lock:
+                        lock.release()
 
             self.board.do_move(move)
             

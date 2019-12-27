@@ -9,5 +9,6 @@ call pip install tensorlayer==1.10.1
 call pip install pygame==1.9.6
 call pip install mpi4py
 call pip install --upgrade numpy
+call pip install filelock
 
 pause
