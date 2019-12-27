@@ -43,7 +43,7 @@ class TrainPipeline():
         self.game = Game(self.board)
         # training params
         self.learn_rate = 1e-3
-        self.n_playout = 121  # num of simulations for each move
+        self.n_playout = 200  # num of simulations for each move
         self.c_puct = 5
         self.buffer_size = 500000
         # memory size, should be larger with bigger board
@@ -56,7 +56,7 @@ class TrainPipeline():
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
         # only for monitoring the progress of training
-        self.pure_mcts_playout_num = 121
+        self.pure_mcts_playout_num = 10
         # record the win rate against pure mcts
         # once the win ratio risen to 1,
         # pure mcts playout num will plus 100 and win ratio reset to 0
@@ -84,7 +84,7 @@ class TrainPipeline():
         # else:
         #     cuda = False
 
-        if rank == 0:
+        if rank < 2:
             cuda = True
         else:
             cuda = False
@@ -457,7 +457,7 @@ class TrainPipeline():
 
 
 if __name__ == '__main__':
-    training_pipeline = TrainPipeline(init_model='tmp/current_policy.model', transfer_model=None)
-    # training_pipeline = TrainPipeline(init_model=None, transfer_model='model/best_policy.model')
+    # training_pipeline = TrainPipeline(init_model='tmp/current_policy.model', transfer_model=None)
+    training_pipeline = TrainPipeline(init_model=None, transfer_model='model/best_policy.model')
     # training_pipeline = TrainPipeline()
     training_pipeline.run()
