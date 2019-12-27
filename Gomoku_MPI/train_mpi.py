@@ -34,8 +34,8 @@ class TrainPipeline():
         self.game_count = 0  # count total game have played
         self.resnet_block = 19  # num of block structures in resnet
         # params of the board and the game
-        self.board_width = 11
-        self.board_height = 11
+        self.board_width = 6
+        self.board_height = 6
         self.n_in_row = 5
         self.board = Board(width=self.board_width,
                            height=self.board_height,
@@ -60,7 +60,13 @@ class TrainPipeline():
         # record the win rate against pure mcts
         # once the win ratio risen to 1,
         # pure mcts playout num will plus 100 and win ratio reset to 0
-        self.best_win_ratio = 0.0
+        
+        try:
+            f = open("model/win_ratio.txt", "r")
+            self.best_win_ratio = float(f.read())
+            f.close()
+        except:
+            self.best_win_ratio = -1
 
         # GPU setting
         # be careful to set your GPU using depends on GPUs' and CPUs' memory
@@ -255,7 +261,7 @@ class TrainPipeline():
 
         # win_ratio = 1.0*(win_cnt[1] + 0.5*win_cnt[-1]) / n_games
         
-        return win_ratio
+        return win_ratio, win_cnt[1], win_cnt[2], win_cnt[-1]
 
     def mymovefile(self, srcfile, dstfile):
         '''
@@ -313,12 +319,6 @@ class TrainPipeline():
         evaluate_time = 0
 
         try:
-            if rank == 0:
-                self.best_win_ratio = self.policy_evaluate(n_games=10, num=0)
-                print('rank {}: '.format(rank), 
-                    'Initial win ratio: {}'.format(self.best_win_ratio)
-                )
-
             for num in range(self.game_batch_num):
                 if rank == 0:
                     # train collected data
@@ -377,13 +377,20 @@ class TrainPipeline():
 
                         # evaluate current model
                         evaluate_start_time = time.time()
-                        win_ratio = self.policy_evaluate(n_games=10, num=num)
+                        win_ratio, win, lose, tie = self.policy_evaluate(n_games=10, num=num)
                         evaluate_time += time.time()-evaluate_start_time
-                        if win_ratio > self.best_win_ratio:
+                        if win_ratio >= self.best_win_ratio:
                             # save best model
                             print("New best policy!!!!!!!!")
                             self.best_win_ratio = win_ratio
                             self.policy_value_net.save_model('model/best_policy.model')
+                            
+                            f = open("model/win_ratio.txt", "w")
+                            f.write(str(self.best_win_ratio) + '\n')
+                            f.write(str(win) + '\n')
+                            f.write(str(lose) + '\n')
+                            f.write(str(tie) + '\n')
+                            f.close()
 
                             # if (self.best_win_ratio == 1.0 and self.pure_mcts_playout_num < 5000):
                             #     # increase playout num and  reset the win ratio
@@ -439,7 +446,7 @@ class TrainPipeline():
 
 
 if __name__ == '__main__':
-    # training_pipeline = TrainPipeline(init_model='tmp/current_policy.model', transfer_model=None)
-    training_pipeline = TrainPipeline(init_model=None, transfer_model='model/best_policy.model')
+    training_pipeline = TrainPipeline(init_model='tmp/current_policy.model', transfer_model=None)
+    # training_pipeline = TrainPipeline(init_model=None, transfer_model='model/best_policy.model')
     # training_pipeline = TrainPipeline()
     training_pipeline.run()

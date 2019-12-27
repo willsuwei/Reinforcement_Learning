@@ -50,10 +50,10 @@ def run(start_player=0,is_shown=1):
     n = 5
     # width, height = 15, 15
     # model_file = 'model_15_15_5/best_policy.model'
-    # width, height = 6, 6
-    # model_file = 'model/best_policy.model'
-    width, height = 11, 11
+    width, height = 6, 6
     model_file = 'model/best_policy.model'
+    # width, height = 11, 11
+    # model_file = 'model/best_policy.model'
     p = os.getcwd()
     model_file = path.join(p,model_file)
 
@@ -91,8 +91,8 @@ def run(start_player=0,is_shown=1):
     # return win
 
     # play in GUI
-    # game.start_play_with_UI(alpha_zero_player) # Play with alpha zero
-    game.start_play_with_UI(mcts_player) # Play with pure MTCS
+    game.start_play_with_UI(alpha_zero_player) # Play with alpha zero
+    # game.start_play_with_UI(mcts_player) # Play with pure MTCS
 
 
 if __name__ == '__main__':
