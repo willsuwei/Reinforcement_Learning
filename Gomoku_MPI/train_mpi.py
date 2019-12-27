@@ -78,7 +78,6 @@ class TrainPipeline():
         else:
             cuda = False
 
-        # cuda = True
         if (init_model is not None) and os.path.exists(init_model+'.index'):
             # start training from an initial policy-value net
             self.policy_value_net = PolicyValueNet(
@@ -315,9 +314,9 @@ class TrainPipeline():
 
         try:
             if rank == 0:
-                win_ratio = self.policy_evaluate(n_games=10, num=0)
+                self.best_win_ratio = self.policy_evaluate(n_games=10, num=0)
                 print('rank {}: '.format(rank), 
-                    'Initial win ratio: {}'.format(win_ratio)
+                    'Initial win ratio: {}'.format(self.best_win_ratio)
                 )
 
             for num in range(self.game_batch_num):
