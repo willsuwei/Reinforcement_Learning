@@ -48,8 +48,8 @@ class TrainPipeline():
         self.c_puct = 5
         self.buffer_size = 500000
         # memory size, should be larger with bigger board
-        # in paper it can stores 500,000 games, here with 11x11 board can store only around 2000 games
-        self.batch_size = 512  # mini-batch size for training
+        # in paper it can stores 500,000 games, here 500000 with 11x11 board can store only around 2000 games. (25 steps per game)
+        self.batch_size = 512  # mini-batch size for training. 512 default
         self.data_buffer = deque(maxlen=self.buffer_size)
         self.play_batch_size = 1
         self.game_batch_num = 10000000  # total game to train
@@ -205,14 +205,15 @@ class TrainPipeline():
                                  np.var(np.array(winner_batch) - new_v.flatten()) /
                                  np.var(np.array(winner_batch)))
 
-            if print_out and (steps < 10 or (i % (steps//10) == 0)):
+            if print_out and (steps < 10 or (i % 20 == 0)):
                 # print some information, not too much
-                print('batch: {},length: {}'
-                      'kl:{:.5f},'
-                      'loss:{},'
-                      'entropy:{},'
-                      'explained_var_old:{:.3f},'
+                print('batch: {}/{}, length: {} '
+                      'kl:{:.5f}, '
+                      'loss:{}, '
+                      'entropy:{}, '
+                      'explained_var_old:{:.3f}, '
                       'explained_var_new:{:.3f}'.format(i,
+                                                        steps,
                                                         len(mini_batch),
                                                         kl,
                                                         loss,
@@ -388,7 +389,11 @@ class TrainPipeline():
                     if win_ratio >= self.best_win_ratio:
                         print("New best policy!!!!!!!!")
                         self.best_win_ratio = win_ratio
-                        
+                        # if (self.best_win_ratio == 1.0 and self.pure_mcts_playout_num < 10000):
+                        #     # increase playout num and  reset the win ratio
+                        #     self.pure_mcts_playout_num += 100
+                        #     self.best_win_ratio = 0.0
+
                         while True:
                             try:
                                 self.policy_value_net.save_model('model/best_policy.model')
@@ -403,7 +408,7 @@ class TrainPipeline():
                         f.write(str(lose) + '\n')
                         f.write(str(tie) + '\n')
                         f.close()
-
+                        
                     # Keep 10 mins training interval
                     after = time.time()
                     if after-before < 60*10:
@@ -414,11 +419,11 @@ class TrainPipeline():
 
                 else:
                     #　self-play to collect data
-                    if os.path.exists('tmp/current_policy.model.index'):
+                    if os.path.exists('model/best_policy.model.index'):
                         while True:
                             try:
                                 retore_model_start_time = time.time()
-                                self.policy_value_net.restore_model('tmp/current_policy.model')
+                                self.policy_value_net.restore_model('model/best_policy.model')
                                 retore_model_time += time.time()-retore_model_start_time
                                 print("rank", rank, ":", 'model loaded from tmp model ...')
                                 break
@@ -451,7 +456,7 @@ class TrainPipeline():
 
 
 if __name__ == '__main__':
-    training_pipeline = TrainPipeline(init_model='tmp/current_policy.model', transfer_model=None)
-    # training_pipeline = TrainPipeline(init_model=None, transfer_model='model/best_policy.model')
+    # training_pipeline = TrainPipeline(init_model='tmp/current_policy.model', transfer_model=None)
+    training_pipeline = TrainPipeline(init_model=None, transfer_model='model/best_policy.model')
     # training_pipeline = TrainPipeline()
     training_pipeline.run()

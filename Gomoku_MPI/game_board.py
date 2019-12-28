@@ -449,51 +449,51 @@ class Game(object):
             current_players.append(self.board.current_player)
             
             
-            fileName = "model/move_count.txt"
-            for i in range(3):
-                lock = None
-                try:
-                    if os.path.exists(fileName):
-                        lock = FileLock(fileName)
+            # fileName = "model/move_count.txt"
+            # for i in range(3):
+            #     lock = None
+            #     try:
+            #         if os.path.exists(fileName):
+            #             lock = FileLock(fileName)
                         
-                    if os.path.exists(fileName):
-                        f = open(fileName, "r")
-                        count = int(f.readline().replace("\n", ""))
-                        start_time = float(f.readline().replace("\n", ""))
-                        f.close()
-                    else:
-                        count = 0
-                        # start time has been initialized
+            #         if os.path.exists(fileName):
+            #             f = open(fileName, "r")
+            #             count = int(f.readline().replace("\n", ""))
+            #             start_time = float(f.readline().replace("\n", ""))
+            #             f.close()
+            #         else:
+            #             count = 0
+            #             # start time has been initialized
                     
-                    count += 1
-                    current_time = time.time()
-                    time_elapsed = current_time - start_time
-                    speed = time_elapsed / count
+            #         count += 1
+            #         current_time = time.time()
+            #         time_elapsed = current_time - start_time
+            #         speed = time_elapsed / count
                     
-                    if (count % 100 == 0):
-                        count = 0
-                        start_time = time.time()
-                        current_time = start_time
-                        time_elapsed = 0
-                        speed = 0
+            #         if (count % 100 == 0):
+            #             count = 0
+            #             start_time = time.time()
+            #             current_time = start_time
+            #             time_elapsed = 0
+            #             speed = 0
                     
-                    f = open(fileName, "w")
-                    f.write(str(count) + "\n") # count
-                    f.write(str(start_time) + '\n') # start time
-                    f.write(str(current_time) + '\n') # current time
-                    f.write(str(time_elapsed) + '\n') # current time
-                    f.write(str(speed) + '\n') # speed
-                    f.close()
+            #         f = open(fileName, "w")
+            #         f.write(str(count) + "\n") # count
+            #         f.write(str(start_time) + '\n') # start time
+            #         f.write(str(current_time) + '\n') # current time
+            #         f.write(str(time_elapsed) + '\n') # current time
+            #         f.write(str(speed) + '\n') # speed
+            #         f.close()
                     
-                    break
-                except ValueError as e:
-                    print(e)
-                    print("@" * 100, "write count conflict!!! ValueError", i)
-                except:
-                    print("!" * 100, "write count conflict!!! Other error", i)
-                finally:
-                    if lock:
-                        lock.release()
+            #         break
+            #     except ValueError as e:
+            #         print(e)
+            #         print("@" * 100, "write count conflict!!! ValueError", i)
+            #     except:
+            #         print("!" * 100, "write count conflict!!! Other error", i)
+            #     finally:
+            #         if lock:
+            #             lock.release()
 
             self.board.do_move(move)
             
