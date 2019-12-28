@@ -17,6 +17,7 @@ from mcts_pure import MCTSPlayer as MCTS_Pure
 from mcts_alphaZero import MCTSPlayer
 from policy_value_net_tensorlayer import PolicyValueNet
 import sys
+from datetime import datetime
 
 # import sys
 # sys.stdout.flush()
@@ -43,7 +44,7 @@ class TrainPipeline():
         self.game = Game(self.board)
         # training params
         self.learn_rate = 1e-3
-        self.n_playout = 200  # num of simulations for each move
+        self.n_playout = 400  # num of simulations for each move
         self.c_puct = 5
         self.buffer_size = 500000
         # memory size, should be larger with bigger board
@@ -56,7 +57,7 @@ class TrainPipeline():
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
         # only for monitoring the progress of training
-        self.pure_mcts_playout_num = 10
+        self.pure_mcts_playout_num = 121
         # record the win rate against pure mcts
         # once the win ratio risen to 1,
         # pure mcts playout num will plus 100 and win ratio reset to 0
@@ -88,6 +89,7 @@ class TrainPipeline():
             cuda = True
         else:
             cuda = False
+        self.cuda = cuda
 
         if (init_model is not None) and os.path.exists(init_model+'.index'):
             # start training from an initial policy-value net
@@ -221,24 +223,25 @@ class TrainPipeline():
         return loss, entropy
 
     def policy_evaluate(self, n_games=10, num=0):
-        '''
-        Evaluate the trained policy by
-        playing against the pure MCTS player or play with itself
-        pure MCTS only for monitoring the progress of training
-        play with itself (last best net) for evaluating the best model so as to collect data
-        '''
-        # fix the playout times to 400
-        current_mcts_player = MCTSPlayer(policy_value_function=self.policy_value_net.policy_value_fn_random,
-                                         action_fc=self.policy_value_net.action_fc_test,
-                                         evaluation_fc=self.policy_value_net.evaluation_fc2_test,
-                                         c_puct=self.c_puct,
-                                         n_playout=self.n_playout,
-                                         is_selfplay=False)
-        # current_mcts_player = self.mcts_player
+        # mcts_player = self.mcts_player
+        mcts_player = MCTSPlayer(policy_value_function=self.policy_value_net.policy_value_fn_random,
+                                        action_fc=self.policy_value_net.action_fc_test,
+                                        evaluation_fc=self.policy_value_net.evaluation_fc2_test,
+                                        c_puct=self.c_puct,
+                                        n_playout=self.n_playout,
+                                        is_selfplay=False)
 
         test_player = MCTS_Pure(c_puct=5, n_playout=self.pure_mcts_playout_num)
+        # policy_value_net = PolicyValueNet(self.board_width, self.board_height, block=self.resnet_block, 
+        #     init_model="model_11_11_5/best_policy.model", cuda=self.cuda)
+        # test_player = MCTSPlayer(policy_value_function=policy_value_net.policy_value_fn_random,
+        #                               action_fc=policy_value_net.action_fc_test,
+        #                               evaluation_fc=policy_value_net.evaluation_fc2_test,
+        #                               c_puct=self.c_puct,
+        #                               n_playout=self.n_playout,
+        #                               is_selfplay=True)
 
-        # print("---"*25, current_mcts_player.mcts._n_playout)
+        # print("---"*25, mcts_player.mcts._n_playout)
         # print("---"*25, test_player.mcts._n_playout)
 
         win_cnt = defaultdict(int)
@@ -254,7 +257,7 @@ class TrainPipeline():
             #                                 is_shown=False,
             #                                 print_prob=False)
                                             
-            winner, _ = self.game.start_UI_play(player1=current_mcts_player, player2=test_player, is_shown=True, rank=rank)
+            winner, _ = self.game.start_UI_play(player1=mcts_player, player2=test_player, start_player=i%2, is_shown=True, rank=rank)
 
             win_cnt[winner] += 1
             win_ratio = 1.0*(win_cnt[1] + 0.5*win_cnt[-1]) / n_games # win for 1，tie for 0.5
@@ -295,26 +298,17 @@ class TrainPipeline():
             # print("move %s -> %s" % (srcfile, dstfile))
 
     def run(self):
-        '''
-        run the training pipeline
-        for MPI,
-        rank 0: train collected data
-        rank 1: evaluate current network and save best model
-        rank 2: play with pure mcts just for monitoring
-        other ranks for collecting data
-        '''
-        # make dirs first
         if not os.path.exists('tmp'):
             os.makedirs('tmp')
         if not os.path.exists('model'):
             os.makedirs('model')
 
-        if not os.path.exists('kifu_new'):
-            os.makedirs('kifu_new')
-        if not os.path.exists('kifu_train'):
-            os.makedirs('kifu_train')
-        if not os.path.exists('kifu_old'):
-            os.makedirs('kifu_old')
+        if not os.path.exists('play_history/kifu_new'):
+            os.makedirs('play_history/kifu_new')
+        if not os.path.exists('play_history/kifu_train'):
+            os.makedirs('play_history/kifu_train')
+        if not os.path.exists('play_history/kifu_old'):
+            os.makedirs('play_history/kifu_old')
 
         # record time for each part
         start_time = time.time()
@@ -325,114 +319,118 @@ class TrainPipeline():
 
         try:
             for num in range(self.game_batch_num):
+                print('rank {}: '.format(rank), 
+                    'Now is {}'.format(datetime.now())
+                )
+
                 if rank == 0:
-                    # train collected data
                     before = time.time()
 
-                    # here I move data from a dir to another in order to avoid I/O conflict
-                    # it's stupid and must have a better way to do it
-                    dir_kifu_new = os.listdir('kifu_new')
-                    for file in dir_kifu_new:
-                        if file == ".DS_Store":
-                            continue
-                        
-                        try:
-                            # try to move file from kifu_new to kifu_train, if is under written now, just pass
-                            self.mymovefile('kifu_new/'+file,
-                                            'kifu_train/'+file)
-                        except:
-                            print('rank {}: '.format(rank), 
-                                '{} is being written now...'.format(file)
-                            )
+                    while True:
+                        dir_kifu_new = os.listdir('play_history/kifu_new')
+                        for file in dir_kifu_new:
+                            if file == ".DS_Store":
+                                continue
+                            
+                            try:
+                                self.mymovefile('play_history/kifu_new/'+file,
+                                                'play_history/kifu_train/'+file)
+                            except:
+                                print('rank {}: '.format(rank), 
+                                    '{} is being written now...'.format(file)
+                                )
 
-                    dir_kifu_train = os.listdir('kifu_train')
-                    for file in dir_kifu_train:
-                        if file == ".DS_Store":
-                            continue
-                        
-                        try:
-                            # load data
-                            # try to move file from kifu_train to kifu_old, if is under written now, just pass
-                            data = np.load('kifu_train/'+file, allow_pickle=True)
-                            self.data_buffer.extend(data.tolist())
-                            self.mymovefile('kifu_train/'+file, 'kifu_old/'+file)
-                            self.game_count += 1
-                        except:
-                            print('rank {}: '.format(rank), 
-                                '{} is being written now...'.format(file)
-                            )
+                        dir_kifu_train = os.listdir('play_history/kifu_train')
+                        for file in dir_kifu_train:
+                            if file == ".DS_Store":
+                                continue
+                            
+                            try:
+                                data = np.load('play_history/kifu_train/'+file, allow_pickle=True)
+                                self.data_buffer.extend(data.tolist())
+                                self.mymovefile('play_history/kifu_train/'+file, 'play_history/kifu_old/'+file)
+                                self.game_count += 1
+                            except:
+                                print('rank {}: '.format(rank), 
+                                    '{} is being written now...'.format(file)
+                                )
 
-                    # print train epoch and total game num
-                    print('rank {}: '.format(rank), 
-                        'train epoch :{},total game :{}'.format(num, self.game_count)
+                        print('rank {}: '.format(rank), 
+                            'Train epoch: {}. Total games: {}'.format(num, self.game_count)
+                        )
+
+                        if len(self.data_buffer) < self.batch_size * 5:
+                            time.sleep(10)
+                            continue
+                        else:
+                            break
+                    
+                    # Training
+                    print('rank {}: '.format(rank),
+                        'Training... Epoch: . Data buffer length: {}. Now time: {}'.format(len(self.data_buffer), (time.time()-start_time)/3600)
+                    )
+                    loss, entropy = self.policy_update(print_out=True)
+                    print('rank {}: '.format(rank),
+                        'Loss: {} Entropy: {}'.format(loss, entropy)
                     )
 
-                    if len(self.data_buffer) > self.batch_size * 5:
-                        # training
-                        print('rank {}: '.format(rank),
-                            'data buffer length:{}'.format(len(self.data_buffer))
-                        )
+                    # Save
+                    while True:
+                        try:
+                            self.policy_value_net.save_model('tmp/current_policy.model')
+                            break
+                        except:
+                            print("!" * 100, "Model saving error. Try again in 3 seconds")
+                            time.sleep(3)
+
+                    # Evaluate
+                    evaluate_start_time = time.time()
+                    win_ratio, win, lose, tie = self.policy_evaluate(n_games=10, num=num)
+                    evaluate_time += time.time()-evaluate_start_time
+                    if win_ratio >= self.best_win_ratio:
+                        print("New best policy!!!!!!!!")
+                        self.best_win_ratio = win_ratio
                         
-                        print('rank {}: '.format(rank),
-                            'Training... now time : {}'.format((time.time()-start_time)/3600)
-                        )
-                            
-                        loss, entropy = self.policy_update(print_out=True)
+                        while True:
+                            try:
+                                self.policy_value_net.save_model('model/best_policy.model')
+                                break
+                            except:
+                                print("!" * 100, "Model saving error. Try again in 3 seconds")
+                                time.sleep(3)
+                        
+                        f = open("model/win_ratio.txt", "w")
+                        f.write(str(self.best_win_ratio) + '\n')
+                        f.write(str(win) + '\n')
+                        f.write(str(lose) + '\n')
+                        f.write(str(tie) + '\n')
+                        f.close()
 
-                        print('rank {}: '.format(rank),
-                            'Loss: {} Entropy: {}'.format(loss, entropy)
-                        )
-
-                        # save model to tmp dir, wait for evaluating
-                        self.policy_value_net.save_model('tmp/current_policy.model')
-
-                        # evaluate current model
-                        evaluate_start_time = time.time()
-                        win_ratio, win, lose, tie = self.policy_evaluate(n_games=10, num=num)
-                        evaluate_time += time.time()-evaluate_start_time
-                        if win_ratio >= self.best_win_ratio:
-                            # save best model
-                            print("New best policy!!!!!!!!")
-                            self.best_win_ratio = win_ratio
-                            self.policy_value_net.save_model('model/best_policy.model')
-                            
-                            f = open("model/win_ratio.txt", "w")
-                            f.write(str(self.best_win_ratio) + '\n')
-                            f.write(str(win) + '\n')
-                            f.write(str(lose) + '\n')
-                            f.write(str(tie) + '\n')
-                            f.close()
-
-                            # if (self.best_win_ratio == 1.0 and self.pure_mcts_playout_num < 5000):
-                            #     # increase playout num and  reset the win ratio
-                            #     self.pure_mcts_playout_num += 100
-                            #     self.best_win_ratio = 0.0
-                            # if self.pure_mcts_playout_num ==5000:
-                            #     # reset mcts pure playout num
-                            #     self.pure_mcts_playout_num = 1000
-                            #     self.best_win_ratio = 0.0
-
+                    # Keep 10 mins training interval
                     after = time.time()
-                    # do not train too frequent in the beginning. 10 mins interval
                     if after-before < 60*10:
+                        print('rank {}: '.format(rank), 
+                            'Now is {}. Sleep for {} seconds'.format(datetime.now(), 60*10-after+before)
+                        )
                         time.sleep(60*10-after+before)
-                    # time.sleep(10)
 
                 else:
                     #　self-play to collect data
                     if os.path.exists('tmp/current_policy.model.index'):
-                        try:
-                            retore_model_start_time = time.time()
-                            self.policy_value_net.restore_model('tmp/current_policy.model')
-                            retore_model_time += time.time()-retore_model_start_time
-                            print("rank", rank, ":", 'model loaded from tmp model ...')
-                        except:
-                            # the model is under written
-                            print("rank", rank, ":", 'cannot load model ...')
+                        while True:
+                            try:
+                                retore_model_start_time = time.time()
+                                self.policy_value_net.restore_model('tmp/current_policy.model')
+                                retore_model_time += time.time()-retore_model_start_time
+                                print("rank", rank, ":", 'model loaded from tmp model ...')
+                                break
+                            except:
+                                # the model is under written
+                                print("rank", rank, ":", 'cannot load model ...')
+                                time.sleep(3)
 
                     # tmp buffer to collect self-play data
                     self.data_buffer_tmp = []
-                    # print('rank {} begin to selfplay,ronud {}'.format(rank,i+1))
 
                     # collect self-play data
                     collect_data_start_time = time.time()
@@ -440,10 +438,8 @@ class TrainPipeline():
                     collect_data_time += time.time()-collect_data_start_time
 
                     # save data to file
-                    # it's very useful if program break off for some reason
-                    # we can load the data and continue to train
                     save_data_satrt_time = time.time()
-                    np.save('kifu_new/rank_'+str(rank)+'game_' + str(num)+'.npy', np.array(self.data_buffer_tmp))
+                    np.save('play_history/kifu_new/rank_'+str(rank)+'_date_' + str(datetime.now().strftime("%Y%m%d%H%M%S")) + '.npy', np.array(self.data_buffer_tmp))
                     save_data_time += time.time()-save_data_satrt_time
 
                     print('rank {}: '.format(rank), 'now time : {}'.format((time.time() - start_time) / 3600))
@@ -457,7 +453,7 @@ class TrainPipeline():
 
 
 if __name__ == '__main__':
-    # training_pipeline = TrainPipeline(init_model='tmp/current_policy.model', transfer_model=None)
-    training_pipeline = TrainPipeline(init_model=None, transfer_model='model/best_policy.model')
+    training_pipeline = TrainPipeline(init_model='tmp/current_policy.model', transfer_model=None)
+    # training_pipeline = TrainPipeline(init_model=None, transfer_model='model/best_policy.model')
     # training_pipeline = TrainPipeline()
     training_pipeline.run()

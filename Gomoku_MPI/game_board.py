@@ -401,9 +401,9 @@ class Game(object):
                 return winner, zip(states, mcts_probs, winners_z)
 
 
-    def start_UI_play(self, player1, player2, is_shown=True, rank=0):
+    def start_UI_play(self, player1, player2, start_player=0, is_shown=True, rank=0):
         # AI.reset_player()
-        self.board.init_board()
+        self.board.init_board(start_player=start_player)
 
         UI = GUI(self.board.width)
         end = False
@@ -412,7 +412,7 @@ class Game(object):
         start_time = time.time()
         
         while True:
-            if self.board.current_player == 1:
+            if self.board.current_player == self.board.players[0]:
                 # UI.show_messages('Player1\'s turn  1')
                 move, move_probs = player1.get_action(self.board, is_selfplay=False, print_probs_value=False)
             else:
