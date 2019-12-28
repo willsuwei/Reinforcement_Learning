@@ -425,11 +425,11 @@ class TrainPipeline():
                                 retore_model_start_time = time.time()
                                 self.policy_value_net.restore_model('model/best_policy.model')
                                 retore_model_time += time.time()-retore_model_start_time
-                                print("rank", rank, ":", 'model loaded from tmp model ...')
+                                print("rank", rank, ":", 'model loaded...')
                                 break
                             except:
                                 # the model is under written
-                                print("rank", rank, ":", 'cannot load model ...')
+                                print("rank", rank, ":", 'cannot load model...')
                                 time.sleep(3)
 
                     # tmp buffer to collect self-play data
