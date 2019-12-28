@@ -401,7 +401,7 @@ class Game(object):
                 return winner, zip(states, mcts_probs, winners_z)
 
 
-    def start_UI_play(self, player1, player2, start_player=0, is_shown=True, rank=0):
+    def start_UI_play(self, player1, player2, start_player=0, is_shown=True, rank=0, isEvaluate=False, model1='tmp/current_policy.model', model2='model_11_11_5/best_policy.model', policy_value_net=None):
         # AI.reset_player()
         self.board.init_board(start_player=start_player)
 
@@ -414,8 +414,28 @@ class Game(object):
         while True:
             if self.board.current_player == self.board.players[0]:
                 # UI.show_messages('Player1\'s turn  1')
+                if isEvaluate:
+                    while True:
+                        try:
+                            policy_value_net.restore_model(model1)
+                            # print("rank", rank, ":", 'load model 1')
+                            break
+                        except:
+                            # the model is under written
+                            print("rank", rank, ":", 'cannot load model ...')
+                            time.sleep(3)
                 move, move_probs = player1.get_action(self.board, is_selfplay=False, print_probs_value=False)
             else:
+                if isEvaluate:
+                    while True:
+                        try:
+                            policy_value_net.restore_model(model2)
+                            # print("rank", rank, ":", 'load model 2')
+                            break
+                        except:
+                            # the model is under written
+                            print("rank", rank, ":", 'cannot load model ...')
+                            time.sleep(3)
                 # UI.show_messages('Player2\'s turn  2')
                 move, move_probs = player2.get_action(self.board, is_selfplay=False, print_probs_value=False)
                 
