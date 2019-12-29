@@ -85,7 +85,7 @@ class TrainPipeline():
         # else:
         #     cuda = False
 
-        if rank < 3:
+        if rank < 300:
             cuda = True
         else:
             cuda = False
