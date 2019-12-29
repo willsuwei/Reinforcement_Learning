@@ -35,8 +35,8 @@ class TrainPipeline():
         self.game_count = 0  # count total game have played
         self.resnet_block = 19  # num of block structures in resnet
         # params of the board and the game
-        self.board_width = 11
-        self.board_height = 11
+        self.board_width = 15
+        self.board_height = 15
         self.n_in_row = 5
         self.board = Board(width=self.board_width,
                            height=self.board_height,
@@ -70,7 +70,7 @@ class TrainPipeline():
             self.best_win_ratio = -1
             
         try:
-            os.remove("model/move_count.txt")
+            os.remove("move_count.txt")
         except:
             pass
             
@@ -85,7 +85,7 @@ class TrainPipeline():
         # else:
         #     cuda = False
 
-        if rank < 2:
+        if rank < 3:
             cuda = True
         else:
             cuda = False
@@ -223,7 +223,7 @@ class TrainPipeline():
 
         return loss, entropy
 
-    def policy_evaluate(self, n_games=10, num=0):
+    def policy_evaluate(self, n_games=10, num=0, model1='tmp/current_policy.model', model2='model_15_15_5/best_policy.model'):
         # mcts_player = self.mcts_player
         mcts_player = MCTSPlayer(policy_value_function=self.policy_value_net.policy_value_fn_random,
                                         action_fc=self.policy_value_net.action_fc_test,
@@ -256,7 +256,7 @@ class TrainPipeline():
             #                                 is_shown=False,
             #                                 print_prob=False)
                                             
-            winner, _ = self.game.start_UI_play(player1=mcts_player, player2=test_player, start_player=i%2, is_shown=True, rank=rank, isEvaluate=True, model1='tmp/current_policy.model', model2='model_11_11_5/best_policy.model', policy_value_net=self.policy_value_net)
+            winner, _ = self.game.start_UI_play(player1=mcts_player, player2=test_player, start_player=i%2, is_shown=True, rank=rank, isEvaluate=True, model1=model1, model2=model2, policy_value_net=self.policy_value_net)
 
             win_cnt[winner] += 1
             win_ratio = 1.0*(win_cnt[1] + 0.5*win_cnt[-1]) / n_games # win for 1，tie for 0.5
@@ -384,7 +384,7 @@ class TrainPipeline():
 
                     # Evaluate
                     evaluate_start_time = time.time()
-                    win_ratio, win, lose, tie = self.policy_evaluate(n_games=10, num=num)
+                    win_ratio, win, lose, tie = self.policy_evaluate(n_games=10, num=num, model1='tmp/current_policy.model', model2='model_15_15_5/best_policy.model')
                     evaluate_time += time.time()-evaluate_start_time
                     if win_ratio >= self.best_win_ratio:
                         print("New best policy!!!!!!!!")
@@ -425,7 +425,19 @@ class TrainPipeline():
                                 retore_model_start_time = time.time()
                                 self.policy_value_net.restore_model('model/best_policy.model')
                                 retore_model_time += time.time()-retore_model_start_time
-                                print("rank", rank, ":", 'model loaded...')
+                                print("rank", rank, ":", 'best model loaded...')
+                                break
+                            except:
+                                # the model is under written
+                                print("rank", rank, ":", 'cannot load model...')
+                                time.sleep(3)
+                    else:
+                        while True:
+                            try:
+                                retore_model_start_time = time.time()
+                                self.policy_value_net.restore_model('tmp/current_policy.model')
+                                retore_model_time += time.time()-retore_model_start_time
+                                print("rank", rank, ":", 'current model loaded...')
                                 break
                             except:
                                 # the model is under written
