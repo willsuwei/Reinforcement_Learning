@@ -1,5 +1,8 @@
+pip3 install virtualenv
+
 rm -rf ./venv
-    virtualenv --system-site-packages -p python3 ./venv
+
+virtualenv --system-site-packages -p python3 ./venv
 
 brew install mpich
 brew install openmpi
