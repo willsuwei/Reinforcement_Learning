@@ -211,7 +211,7 @@ class TrainPipeline():
             winner, _ = start_training_play(
                 current_mcts_player,
                 test_player,
-                start_player=i % 2):
+                start_player=i % 2)
             
             win_cnt[winner] += 1
         win_ratio = 1.0*(win_cnt[1] + 0.5*win_cnt[-1]) / n_games
