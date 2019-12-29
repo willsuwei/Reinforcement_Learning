@@ -144,7 +144,14 @@ class PolicyValueNet():
             [actin_fc, evaluation_fc],
             feed_dict={self.input_states: state_batch}
         )
+        
         act_probs = np.exp(log_act_probs)
+        
+        # print('='*40)
+        # print(log_act_probs)
+        # print(act_probs)
+        # print(len(act_probs[0]))
+        
         return act_probs, value
 
     def policy_value_fn(self, board,actin_fc,evaluation_fc):
@@ -200,6 +207,14 @@ class PolicyValueNet():
         act_probs = np.flipud(equi_mcts_prob).flatten()
 
         act_probs = zip(legal_positions, act_probs[legal_positions])
+        
+        # print('+'*20)
+        # print(legal_positions)
+        # print('+'*20)
+        # print(act_probs)
+        # print('+'*20)
+        # # print(act_probs[legal_positions])
+        # print('+'*20)
         return act_probs, value
 
     def train_step(self, state_batch, mcts_probs, winner_batch, lr):

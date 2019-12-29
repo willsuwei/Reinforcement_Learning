@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Dec  8 16:16:04 2018
-
-@author: initial-h
-"""
-
 import random
 import numpy as np
 import os
@@ -85,7 +78,7 @@ class TrainPipeline():
         # else:
         #     cuda = False
 
-        if rank < 300:
+        if rank < 3:
             cuda = True
         else:
             cuda = False
@@ -153,7 +146,10 @@ class TrainPipeline():
         '''
         for i in range(n_games):
             winner, play_data = self.game.start_training_play(
-                self.mcts_player, self.mcts_player, is_shown=True, rank=rank)
+                self.mcts_player,
+                self.mcts_player,
+                rank=rank)
+            
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
             # augment the data
@@ -250,13 +246,15 @@ class TrainPipeline():
                 self.pure_mcts_playout_num, rank, num, i)
             )
 
-            # winner = self.game.start_play(player1=current_mcts_player,
-            #                                 player2=test_player,
-            #                                 start_player=i % 2,
-            #                                 is_shown=False,
-            #                                 print_prob=False)
-                                            
-            winner, _ = self.game.start_training_play(player1=mcts_player, player2=test_player, start_player=i%2, is_shown=True, rank=rank, isEvaluate=True, model1=model1, model2=model2, policy_value_net=self.policy_value_net)
+            winner, _ = self.game.start_training_play(
+                player1=mcts_player, 
+                player2=test_player,
+                start_player=i%2,
+                rank=rank,
+                isEvaluate=True,
+                model1=model1,
+                model2=model2,
+                policy_value_net=self.policy_value_net)
 
             win_cnt[winner] += 1
             win_ratio = 1.0*(win_cnt[1] + 0.5*win_cnt[-1]) / n_games # win for 1，tie for 0.5

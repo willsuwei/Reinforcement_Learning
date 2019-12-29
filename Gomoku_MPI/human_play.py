@@ -48,11 +48,11 @@ def run(start_player=0,is_shown=1):
     # you can set
     # human vs AI or AI vs AI
     n = 5
-    # width, height = 15, 15
+    width, height = 15, 15
     # model_file = 'model_15_15_5/best_policy.model'
     # width, height = 6, 6
     # model_file = 'model/best_policy.model'
-    width, height = 11, 11
+    # width, height = 11, 11
     model_file = 'model/best_policy.model'
     p = os.getcwd()
     model_file = path.join(p,model_file)

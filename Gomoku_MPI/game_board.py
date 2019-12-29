@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Dec  7 15:14:24 2018
-
-@author: initial-h
-"""
-
 import numpy as np
 from collections import deque
 from GUI_v1_4 import GUI
@@ -256,42 +249,42 @@ class Game(object):
             # print('\r\n') # new line
             print('\r')
 
-    # def start_play(self, player1, player2, start_player=0, is_shown=1,print_prob =True):
-    #     '''
-    #     start a game between two players
-    #     '''
-    #     if start_player not in (0, 1):
-    #         raise Exception('start_player should be either 0 (player1 first) '
-    #                         'or 1 (player2 first)')
-    #     self.board.init_board(start_player)
-    #     p1, p2 = self.board.players
-    #     # print(p1,p2)
-    #     player1.set_player_ind(p1)
-    #     player2.set_player_ind(p2)
-    #     players = {p1: player1, p2: player2}
+    def start_play(self, player1, player2, start_player=0, is_shown=1,print_prob =True):
+        '''
+        start a game between two players
+        '''
+        if start_player not in (0, 1):
+            raise Exception('start_player should be either 0 (player1 first) '
+                            'or 1 (player2 first)')
+        self.board.init_board(start_player)
+        p1, p2 = self.board.players
+        # print(p1,p2)
+        player1.set_player_ind(p1)
+        player2.set_player_ind(p2)
+        players = {p1: player1, p2: player2}
 
-    #     if is_shown:
-    #         self.graphic(self.board, player1.player, player2.player)
+        if is_shown:
+            self.graphic(self.board, player1.player, player2.player)
 
-    #     while True:
-    #         current_player = self.board.get_current_player()
-    #         player_in_turn = players[current_player]
-    #         move,move_probs = player_in_turn.get_action(self.board,is_selfplay=False,print_probs_value=print_prob)
+        while True:
+            current_player = self.board.get_current_player()
+            player_in_turn = players[current_player]
+            move,move_probs = player_in_turn.get_action(self.board,is_selfplay=False,print_probs_value=print_prob)
 
-    #         self.board.do_move(move)
+            self.board.do_move(move)
 
-    #         if is_shown:
-    #             print('player %r move : %r' % (current_player, [move // self.board.width, move % self.board.width]))
-    #             self.graphic(self.board, player1.player, player2.player)
-    #         end, winner = self.board.game_end()
+            if is_shown:
+                print('player %r move : %r' % (current_player, [move // self.board.width, move % self.board.width]))
+                self.graphic(self.board, player1.player, player2.player)
+            end, winner = self.board.game_end()
 
-    #         if end:
-    #             if is_shown:
-    #                 if winner != -1:
-    #                     print("Game end. Winner is", players[winner])
-    #                 else:
-    #                     print("Game end. Tie")
-    #             return winner
+            if end:
+                if is_shown:
+                    if winner != -1:
+                        print("Game end. Winner is", players[winner])
+                    else:
+                        print("Game end. Tie")
+                return winner
 
     def start_play_with_UI(self, AI, start_player=0):
         '''
@@ -311,7 +304,7 @@ class Game(object):
                 UI.show_messages('AI\'s turn')
 
             if current_player == 1 and not end:
-                move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=1)
+                move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=True)
             else:
                 # move, move_probs = AI.get_action(self.board, is_selfplay=False, print_probs_value=1)
                 inp = UI.get_input()
@@ -364,177 +357,35 @@ class Game(object):
                     print(UI.score)
                     print()
 
-    def start_self_play(self, player, is_shown=0):
-        '''
-        start a self-play game using a MCTS player, reuse the search tree,
-        and store the self-play data: (state, mcts_probs, z) for training
-        '''
-        self.board.init_board()
-        p1, p2 = self.board.players
-        states, mcts_probs, current_players = [], [], []
-        while True:
-            move, move_probs = player.get_action(self.board,
-                                                 is_selfplay=True,
-                                                 print_probs_value=False)
-            # store the data
-            states.append(self.board.current_state())
-            mcts_probs.append(move_probs)
-            current_players.append(self.board.current_player)
-            # perform a move
-            self.board.do_move(move)
-            if is_shown:
-                self.graphic(self.board, p1, p2)
-            end, winner = self.board.game_end()
-            if end:
-                # winner from the perspective of the current player of each state
-                winners_z = np.zeros(len(current_players))
-                if winner != -1:
-                    winners_z[np.array(current_players) == winner] = 1.0
-                    winners_z[np.array(current_players) != winner] = -1.0
-                # reset MCTS root node
-                player.reset_player()
-                if is_shown:
-                    if winner != -1:
-                        print("Game end. Winner is player:", winner)
-                    else:
-                        print("Game end. Tie")
-                return winner, zip(states, mcts_probs, winners_z)
-
-    def start_training_play_console(self,
-                player1, 
-                player2, 
-                start_player=0, 
-                is_shown=True, 
-                rank=0, 
-                isEvaluate=False, 
-                model1='tmp/current_policy.model', 
-                model2='model_11_11_5/best_policy.model', 
+    def start_training_play(self,
+                player1,
+                player2,
+                start_player=0,
+                rank=0,
+                show_play=False, # set here
+                print_probs_value=False, # set here
+                show_play_UI=False, # set here
+                calculate_performance=False, # set here
+                isEvaluate=False,
+                model1='tmp/current_policy.model',
+                model2='model_11_11_5/best_policy.model',
                 policy_value_net=None):
-        self.board.init_board()
-        p1, p2 = self.board.players
-        states, mcts_probs, current_players = [], [], []
+        # show_play=True # set here
+        # print_probs_value=True # set here
+        show_play_UI=True # set here
+        calculate_performance=True, # set here
         
-        start_time = time.time()
-        
-        while True:
-            if self.board.current_player == self.board.players[0]:
-                if isEvaluate:
-                    while True:
-                        try:
-                            policy_value_net.restore_model(model1)
-                            break
-                        except:
-                            print("rank", rank, ":", 'cannot load model ...')
-                            time.sleep(3)
-                move, move_probs = player1.get_action(self.board, is_selfplay=False, print_probs_value=False)
-            else:
-                if isEvaluate:
-                    while True:
-                        try:
-                            policy_value_net.restore_model(model2)
-                            break
-                        except:
-                            print("rank", rank, ":", 'cannot load model ...')
-                            time.sleep(3)
-                # UI.show_messages('Player2\'s turn  2')
-                move, move_probs = player2.get_action(self.board, is_selfplay=False, print_probs_value=False)
-            # store the data
-            states.append(self.board.current_state())
-            mcts_probs.append(move_probs)
-            current_players.append(self.board.current_player)
-            
-            
-            fileName = "move_count.txt"
-            for i in range(3):
-                lock = None
-                try:
-                    if os.path.exists(fileName):
-                        lock = FileLock(fileName)
-                        
-                    if os.path.exists(fileName):
-                        f = open(fileName, "r")
-                        count = int(f.readline().replace("\n", ""))
-                        start_time = float(f.readline().replace("\n", ""))
-                        f.close()
-                    else:
-                        count = 0
-                        # start time has been initialized
-                    
-                    count += 1
-                    current_time = time.time()
-                    time_elapsed = current_time - start_time
-                    speed = time_elapsed / count
-                    
-                    if (count % 100 == 0):
-                        count = 0
-                        start_time = time.time()
-                        current_time = start_time
-                        time_elapsed = 0
-                        speed = 0
-                    
-                    f = open(fileName, "w")
-                    f.write(str(count) + "\n") # count
-                    f.write(str(start_time) + '\n') # start time
-                    f.write(str(current_time) + '\n') # current time
-                    f.write(str(time_elapsed) + '\n') # current time
-                    f.write(str(speed) + '\n') # speed
-                    f.close()
-                    
-                    break
-                except ValueError as e:
-                    print(e)
-                    print("@" * 100, "write count conflict!!! ValueError", i)
-                except:
-                    print("!" * 100, "write count conflict!!! Other error", i)
-                finally:
-                    if lock:
-                        lock.release()
-            
-            
-            # perform a move
-            self.board.do_move(move)
-            if is_shown:
-                self.graphic(self.board, p1, p2)
-            end, winner = self.board.game_end()
-            if end:
-                # winner from the perspective of the current player of each state
-                winners_z = np.zeros(len(current_players))
-                if winner != -1:
-                    winners_z[np.array(current_players) == winner] = 1.0
-                    winners_z[np.array(current_players) != winner] = -1.0
-                # reset MCTS root node
-                player1.reset_player()
-                player2.reset_player()
-                
-                if is_shown:
-                    if winner != -1:
-                        print("Game end. Winner is player:", winner)
-                    else:
-                        print("Game end. Tie")
-                return winner, zip(states, mcts_probs, winners_z)
-            
-    def start_training_play_UI(self, 
-                               player1, 
-                               player2, 
-                               start_player=0, 
-                               is_shown=True, 
-                               rank=0, 
-                               isEvaluate=False, 
-                               model1='tmp/current_policy.model', 
-                               model2='model_11_11_5/best_policy.model', 
-                               policy_value_net=None):
-        # AI.reset_player()
         self.board.init_board(start_player=start_player)
 
-        UI = GUI(self.board.width)
-        end = False
-        states, mcts_probs, current_players = [], [], []
+        if show_play_UI:
+            UI = GUI(self.board.width)
+        p1, p2 = self.board.players
         
+        states, mcts_probs, current_players = [], [], []
         start_time = time.time()
         
         while True:
             if self.board.current_player == self.board.players[0]:
-                # UI.show_messages('Player1\'s turn  1')
                 if isEvaluate:
                     while True:
                         try:
@@ -542,10 +393,9 @@ class Game(object):
                             # print("rank", rank, ":", 'load model 1')
                             break
                         except:
-                            # the model is under written
-                            print("rank", rank, ":", 'cannot load model ...')
+                            print("rank", rank, ":", 'Cannot load model. Retry in 3s...')
                             time.sleep(3)
-                move, move_probs = player1.get_action(self.board, is_selfplay=False, print_probs_value=False)
+                move, move_probs = player1.get_action(self.board, is_selfplay=False, print_probs_value=print_probs_value)
             else:
                 if isEvaluate:
                     while True:
@@ -554,69 +404,68 @@ class Game(object):
                             # print("rank", rank, ":", 'load model 2')
                             break
                         except:
-                            # the model is under written
-                            print("rank", rank, ":", 'cannot load model ...')
+                            print("rank", rank, ":", 'Cannot load model. Retry in 3s...')
                             time.sleep(3)
-                # UI.show_messages('Player2\'s turn  2')
-                move, move_probs = player2.get_action(self.board, is_selfplay=False, print_probs_value=False)
+                move, move_probs = player2.get_action(self.board, is_selfplay=False, print_probs_value=print_probs_value)
                 
-            UI.show_messages("MPI Rank: " + str(rank) + "  Count: " + str(len(states)) + "  Player: " + str(self.board.current_player))
-
-            UI.render_step(move, self.board.current_player)
-
             # store the data
             states.append(self.board.current_state())
             mcts_probs.append(move_probs)
             current_players.append(self.board.current_player)
             
-            
-            fileName = "move_count.txt"
-            for i in range(3):
-                lock = None
-                try:
-                    if os.path.exists(fileName):
-                        lock = FileLock(fileName)
+            if calculate_performance:
+                fileName = "move_count.txt"
+                for i in range(3):
+                    lock = None
+                    try:
+                        if os.path.exists(fileName):
+                            lock = FileLock(fileName)
+                            
+                        if os.path.exists(fileName):
+                            f = open(fileName, "r")
+                            count = int(f.readline().replace("\n", ""))
+                            start_time = float(f.readline().replace("\n", ""))
+                            f.close()
+                        else:
+                            count = 0
+                            # start time has been initialized
                         
-                    if os.path.exists(fileName):
-                        f = open(fileName, "r")
-                        count = int(f.readline().replace("\n", ""))
-                        start_time = float(f.readline().replace("\n", ""))
+                        count += 1
+                        current_time = time.time()
+                        time_elapsed = current_time - start_time
+                        speed = time_elapsed / count
+                        
+                        if (count % 100 == 0):
+                            count = 0
+                            start_time = time.time()
+                            current_time = start_time
+                            time_elapsed = 0
+                            speed = 0
+                        
+                        f = open(fileName, "w")
+                        f.write(str(count) + "\n") # count
+                        f.write(str(start_time) + '\n') # start time
+                        f.write(str(current_time) + '\n') # current time
+                        f.write(str(time_elapsed) + '\n') # current time
+                        f.write(str(speed) + '\n') # speed
                         f.close()
-                    else:
-                        count = 0
-                        # start time has been initialized
-                    
-                    count += 1
-                    current_time = time.time()
-                    time_elapsed = current_time - start_time
-                    speed = time_elapsed / count
-                    
-                    if (count % 100 == 0):
-                        count = 0
-                        start_time = time.time()
-                        current_time = start_time
-                        time_elapsed = 0
-                        speed = 0
-                    
-                    f = open(fileName, "w")
-                    f.write(str(count) + "\n") # count
-                    f.write(str(start_time) + '\n') # start time
-                    f.write(str(current_time) + '\n') # current time
-                    f.write(str(time_elapsed) + '\n') # current time
-                    f.write(str(speed) + '\n') # speed
-                    f.close()
-                    
-                    break
-                except ValueError as e:
-                    print(e)
-                    print("@" * 100, "write count conflict!!! ValueError", i)
-                except:
-                    print("!" * 100, "write count conflict!!! Other error", i)
-                finally:
-                    if lock:
-                        lock.release()
+                        
+                        break
+                    except ValueError as e:
+                        print(e)
+                        print("@" * 100, "write count conflict!!! ValueError", i)
+                    except:
+                        print("!" * 100, "write count conflict!!! Other error", i)
+                    finally:
+                        if lock:
+                            lock.release()
 
             self.board.do_move(move)
+            if show_play:
+                self.graphic(self.board, p1, p2)
+            if show_play_UI:
+                UI.show_messages("Rank:" + str(rank) + "  Count:" + str(len(states)) + "  Player:" + str(self.board.current_player))
+                UI.render_step(move, self.board.current_player)
             
             end, winner = self.board.game_end()
             if end:
@@ -630,49 +479,11 @@ class Game(object):
                 player1.reset_player()
                 player2.reset_player()
 
-                if is_shown:
-                    if winner != -1:
-                        print("Game end. Winner is player:", winner)
-                    else:
-                        print("Game end. Tie")
+                if winner != -1:
+                    print("rank", rank, ":", "Game end. Winner is player:", winner, "Count:", len(winners_z))
+                else:
+                    print("rank", rank, ":", "Game end. Tie")
 
                 break
         
         return winner, zip(states, mcts_probs, winners_z)
-
-
-
-
-    def start_training_play(self,
-                player1,
-                player2,
-                start_player=0,
-                rank=0,
-                show_UI=False,
-                is_shown=True,
-                isEvaluate=False,
-                model1='tmp/current_policy.model', 
-                model2='model_11_11_5/best_policy.model', 
-                policy_value_net=None):
-        if show_UI:
-            return self.start_training_play_UI(
-                player1, 
-                player2, 
-                start_player=0, 
-                is_shown=True, 
-                rank=0, 
-                isEvaluate=False, 
-                model1='tmp/current_policy.model', 
-                model2='model_11_11_5/best_policy.model', 
-                policy_value_net=None)
-        else:
-            return self.start_training_play_console(
-                player1, 
-                player2, 
-                start_player=0, 
-                is_shown=True, 
-                rank=0, 
-                isEvaluate=False, 
-                model1='tmp/current_policy.model', 
-                model2='model_11_11_5/best_policy.model', 
-                policy_value_net=None)

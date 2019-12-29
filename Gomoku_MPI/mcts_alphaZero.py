@@ -1,18 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Dec  7 22:05:17 2018
-
-@author: initial
-"""
-
-
 import numpy as np
 import copy
 
 def softmax(x):
     probs = np.exp(x - np.max(x))
-    # https://mp.weixin.qq.com/s/2xYgaeLlmmUfxiHCbCa8dQ
-    # avoid float overflow and underflow
     probs /= np.sum(probs)
     return probs
 
@@ -297,6 +287,7 @@ class MCTSPlayer(object):
                 act_probs, value = self.policy_value_function(board,self.action_fc,self.evaluation_fc)
                 print('-' * 10)
                 print('value',value)
+                print(tuple(act_probs))
                 # print the probability of each move
                 probs = np.array(move_probs).reshape((board.width, board.height)).round(3)[::-1, :]
                 for p in probs:
