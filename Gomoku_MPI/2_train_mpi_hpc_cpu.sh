@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-#SBATCH --job-name=pl2ap
-#SBATCH --output=pl2ap-srun.log
+#SBATCH --job-name=training
+#SBATCH --output=training.log
 #
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
@@ -10,10 +10,10 @@
 #SBATCH --mem-per-cpu=4000
 #SBATCH --mail-user=wei.su@sjsu.edu
 #SBATCH --mail-type=END
+
 export OMP_NUM_THREADS=4
 export OMP_PLACES=cores
 export OMP_PROC_BIND=spread
-
 
 # srun -n 1 -N 1 -c 14 --pty /bin/bash
 
