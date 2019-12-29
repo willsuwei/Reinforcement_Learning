@@ -370,8 +370,8 @@ class Game(object):
                 model1='tmp/current_policy.model',
                 model2='model_11_11_5/best_policy.model',
                 policy_value_net=None):
-        show_play=True # set here
-        print_probs_value=True # set here
+        # show_play=True # set here
+        # print_probs_value=True # set here
         # show_play_UI=True # set here
         calculate_performance=True, # set here
         
@@ -383,6 +383,8 @@ class Game(object):
         
         states, mcts_probs, current_players = [], [], []
         start_time = time.time()
+        
+        print("rank", rank, ":", 'Start playing...')
         
         while True:
             if self.board.current_player == self.board.players[0]:
