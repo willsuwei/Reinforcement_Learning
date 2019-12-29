@@ -152,7 +152,7 @@ class TrainPipeline():
         collect self-play data for training
         '''
         for i in range(n_games):
-            winner, play_data = self.game.start_UI_play(
+            winner, play_data = self.game.start_training_play(
                 self.mcts_player, self.mcts_player, is_shown=True, rank=rank)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
@@ -256,7 +256,7 @@ class TrainPipeline():
             #                                 is_shown=False,
             #                                 print_prob=False)
                                             
-            winner, _ = self.game.start_UI_play(player1=mcts_player, player2=test_player, start_player=i%2, is_shown=True, rank=rank, isEvaluate=True, model1=model1, model2=model2, policy_value_net=self.policy_value_net)
+            winner, _ = self.game.start_training_play(player1=mcts_player, player2=test_player, start_player=i%2, is_shown=True, rank=rank, isEvaluate=True, model1=model1, model2=model2, policy_value_net=self.policy_value_net)
 
             win_cnt[winner] += 1
             win_ratio = 1.0*(win_cnt[1] + 0.5*win_cnt[-1]) / n_games # win for 1，tie for 0.5

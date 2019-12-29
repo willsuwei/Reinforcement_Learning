@@ -413,6 +413,9 @@ class Game(object):
         self.board.init_board()
         p1, p2 = self.board.players
         states, mcts_probs, current_players = [], [], []
+        
+        start_time = time.time()
+        
         while True:
             if self.board.current_player == self.board.players[0]:
                 if isEvaluate:
@@ -439,6 +442,55 @@ class Game(object):
             states.append(self.board.current_state())
             mcts_probs.append(move_probs)
             current_players.append(self.board.current_player)
+            
+            
+            fileName = "move_count.txt"
+            for i in range(3):
+                lock = None
+                try:
+                    if os.path.exists(fileName):
+                        lock = FileLock(fileName)
+                        
+                    if os.path.exists(fileName):
+                        f = open(fileName, "r")
+                        count = int(f.readline().replace("\n", ""))
+                        start_time = float(f.readline().replace("\n", ""))
+                        f.close()
+                    else:
+                        count = 0
+                        # start time has been initialized
+                    
+                    count += 1
+                    current_time = time.time()
+                    time_elapsed = current_time - start_time
+                    speed = time_elapsed / count
+                    
+                    if (count % 100 == 0):
+                        count = 0
+                        start_time = time.time()
+                        current_time = start_time
+                        time_elapsed = 0
+                        speed = 0
+                    
+                    f = open(fileName, "w")
+                    f.write(str(count) + "\n") # count
+                    f.write(str(start_time) + '\n') # start time
+                    f.write(str(current_time) + '\n') # current time
+                    f.write(str(time_elapsed) + '\n') # current time
+                    f.write(str(speed) + '\n') # speed
+                    f.close()
+                    
+                    break
+                except ValueError as e:
+                    print(e)
+                    print("@" * 100, "write count conflict!!! ValueError", i)
+                except:
+                    print("!" * 100, "write count conflict!!! Other error", i)
+                finally:
+                    if lock:
+                        lock.release()
+            
+            
             # perform a move
             self.board.do_move(move)
             if is_shown:
