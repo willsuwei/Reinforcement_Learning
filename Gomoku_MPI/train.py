@@ -120,7 +120,8 @@ class TrainPipeline():
 
             # time.sleep(1000)
 
-            winner, play_data = self.game.start_UI_play(self.mcts_player, self.mcts_player, is_shown=True)
+            # winner, play_data = self.game.start_UI_play(self.mcts_player, self.mcts_player, is_shown=True)
+            winner, play_data = self.game.start_training_play(self.mcts_player, self.mcts_player)
 
 
             play_data = list(play_data)[:]

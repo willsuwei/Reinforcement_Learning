@@ -400,7 +400,7 @@ class Game(object):
                         print("Game end. Tie")
                 return winner, zip(states, mcts_probs, winners_z)
 
-    def start_play(self,
+    def start_training_play_console(self,
                 player1, 
                 player2, 
                 start_player=0, 
@@ -414,9 +414,27 @@ class Game(object):
         p1, p2 = self.board.players
         states, mcts_probs, current_players = [], [], []
         while True:
-            move, move_probs = player.get_action(self.board,
-                                                 is_selfplay=True,
-                                                 print_probs_value=False)
+            if self.board.current_player == self.board.players[0]:
+                if isEvaluate:
+                    while True:
+                        try:
+                            policy_value_net.restore_model(model1)
+                            break
+                        except:
+                            print("rank", rank, ":", 'cannot load model ...')
+                            time.sleep(3)
+                move, move_probs = player1.get_action(self.board, is_selfplay=False, print_probs_value=False)
+            else:
+                if isEvaluate:
+                    while True:
+                        try:
+                            policy_value_net.restore_model(model2)
+                            break
+                        except:
+                            print("rank", rank, ":", 'cannot load model ...')
+                            time.sleep(3)
+                # UI.show_messages('Player2\'s turn  2')
+                move, move_probs = player2.get_action(self.board, is_selfplay=False, print_probs_value=False)
             # store the data
             states.append(self.board.current_state())
             mcts_probs.append(move_probs)
@@ -433,16 +451,26 @@ class Game(object):
                     winners_z[np.array(current_players) == winner] = 1.0
                     winners_z[np.array(current_players) != winner] = -1.0
                 # reset MCTS root node
-                player.reset_player()
+                player1.reset_player()
+                player2.reset_player()
+                
                 if is_shown:
                     if winner != -1:
                         print("Game end. Winner is player:", winner)
                     else:
                         print("Game end. Tie")
                 return winner, zip(states, mcts_probs, winners_z)
-
-
-    def start_UI_play(self, player1, player2, start_player=0, is_shown=True, rank=0, isEvaluate=False, model1='tmp/current_policy.model', model2='model_11_11_5/best_policy.model', policy_value_net=None):
+            
+    def start_training_play_UI(self, 
+                               player1, 
+                               player2, 
+                               start_player=0, 
+                               is_shown=True, 
+                               rank=0, 
+                               isEvaluate=False, 
+                               model1='tmp/current_policy.model', 
+                               model2='model_11_11_5/best_policy.model', 
+                               policy_value_net=None):
         # AI.reset_player()
         self.board.init_board(start_player=start_player)
 
@@ -559,3 +587,40 @@ class Game(object):
                 break
         
         return winner, zip(states, mcts_probs, winners_z)
+
+
+
+
+    def start_training_play(self,
+                player1,
+                player2,
+                start_player=0,
+                rank=0,
+                show_UI=False,
+                is_shown=True,
+                isEvaluate=False,
+                model1='tmp/current_policy.model', 
+                model2='model_11_11_5/best_policy.model', 
+                policy_value_net=None):
+        if show_UI:
+            return self.start_training_play_UI(
+                player1, 
+                player2, 
+                start_player=0, 
+                is_shown=True, 
+                rank=0, 
+                isEvaluate=False, 
+                model1='tmp/current_policy.model', 
+                model2='model_11_11_5/best_policy.model', 
+                policy_value_net=None)
+        else:
+            return self.start_training_play_console(
+                player1, 
+                player2, 
+                start_player=0, 
+                is_shown=True, 
+                rank=0, 
+                isEvaluate=False, 
+                model1='tmp/current_policy.model', 
+                model2='model_11_11_5/best_policy.model', 
+                policy_value_net=None)
