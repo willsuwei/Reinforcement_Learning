@@ -42,7 +42,7 @@ class TrainPipeline():
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
-        cuda = False
+        cuda = True
         self.pure_mcts_playout_num = 200
         if (init_model is not None) and os.path.exists(init_model+'.index'):
             # start training from an initial policy-value net
