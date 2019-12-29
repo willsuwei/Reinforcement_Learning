@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=14
 #SBATCH --time=23:00
 #SBATCH --mem-per-cpu=4000
-#SBATCH --mail-user=username@sjsu.edu
+#SBATCH --mail-user=wei.su@sjsu.edu
 #SBATCH --mail-type=END
 export OMP_NUM_THREADS=4
 export OMP_PLACES=cores
