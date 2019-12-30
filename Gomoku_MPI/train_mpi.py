@@ -141,10 +141,10 @@ class TrainPipeline():
         return extend_data
 
     def collect_selfplay_data(self, n_games=1):
-        '''
-        collect self-play data for training
-        '''
         for i in range(n_games):
+            print('rank: {}, n_games: {}, start playing...'.format(
+                rank, i))
+            
             winner, play_data = self.game.start_training_play(
                 self.mcts_player,
                 self.mcts_player,
@@ -155,14 +155,11 @@ class TrainPipeline():
             # augment the data
             play_data = self.get_equi_data(play_data)
             self.data_buffer_tmp.extend(play_data)
-            if rank % 10 == 0:
-                print('rank: {}, n_games: {}, data length: {}'.format(
-                    rank, i, self.episode_len))
+            
+            print('rank: {}, n_games: {}, data length: {}, winner: {}'.format(
+                rank, i, self.episode_len, winner))
 
     def policy_update(self, print_out):
-        '''
-        update the policy-value net
-        '''
         #play_data: [(state, mcts_prob, winner_z), ..., ...]
         # train an epoch
 

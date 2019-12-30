@@ -372,8 +372,8 @@ class Game(object):
                 policy_value_net=None):
         # show_play=True # set here
         # print_probs_value=True # set here
-        show_play_UI=True # set here
-        # calculate_performance=True, # set here
+        # show_play_UI=True # set here
+        calculate_performance=True, # set here
         
         self.board.init_board(start_player=start_player)
 
@@ -383,6 +383,8 @@ class Game(object):
         
         states, mcts_probs, current_players = [], [], []
         start_time = time.time()
+        
+        print("rank", rank, ":", 'Start playing...')
         
         while True:
             if self.board.current_player == self.board.players[0]:
