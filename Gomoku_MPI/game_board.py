@@ -370,10 +370,10 @@ class Game(object):
                 model1='tmp/current_policy.model',
                 model2='model_11_11_5/best_policy.model',
                 policy_value_net=None):
-        show_play=True # set here
-        print_probs_value=True # set here
-        # show_play_UI=True # set here
-        calculate_performance=True, # set here
+        # show_play=True # set here
+        # print_probs_value=True # set here
+        show_play_UI=True # set here
+        # calculate_performance=True, # set here
         
         self.board.init_board(start_player=start_player)
 
@@ -464,7 +464,6 @@ class Game(object):
             if show_play_UI:
                 UI.show_messages("Rank:" + str(rank) + "  Count:" + str(len(states)) + "  Player:" + str(self.board.current_player))
                 UI.render_step(move, self.board.current_player)
-                print("here")
             self.board.do_move(move)
             if show_play:
                 self.graphic(self.board, p1, p2)

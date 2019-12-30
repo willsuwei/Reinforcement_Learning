@@ -37,12 +37,12 @@ class TrainPipeline():
         self.game = Game(self.board)
         # training params
         self.learn_rate = 1e-3
-        self.n_playout = 400  # num of simulations for each move
+        self.n_playout = 450  # num of simulations for each move
         self.c_puct = 5
         self.buffer_size = 500000
         # memory size, should be larger with bigger board
         # in paper it can stores 500,000 games, here 500000 with 11x11 board can store only around 2000 games. (25 steps per game)
-        self.batch_size = 512  # mini-batch size for training. 512 default
+        self.batch_size = 400  # mini-batch size for training. 512 default
         self.data_buffer = deque(maxlen=self.buffer_size)
         self.play_batch_size = 1
         self.game_batch_num = 10000000  # total game to train
